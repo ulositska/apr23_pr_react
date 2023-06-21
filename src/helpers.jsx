@@ -12,7 +12,12 @@ export const filterProductsByUserId = (allProducts, userId) => {
   return allProducts.filter(product => product.user.id === userId);
 };
 
-export const filterProducts = (allProducts, userId, searchQuery) => {
+export const filterProducts = (
+  allProducts,
+  userId,
+  searchQuery,
+  categoryIds,
+) => {
   const productsOfUser = filterProductsByUserId(allProducts, userId);
 
   const normalizedSearchQuery = searchQuery.toLowerCase();
@@ -20,6 +25,11 @@ export const filterProducts = (allProducts, userId, searchQuery) => {
   return productsOfUser.filter((product) => {
     const stringToSearch = `${product.name.toLowerCase()}`;
 
-    return stringToSearch.includes(normalizedSearchQuery);
+    const isInSelectedCategories = categoryIds.length === 0
+      || categoryIds.includes(product.category.id);
+
+    const matchesSearchQuery = stringToSearch.includes(normalizedSearchQuery);
+
+    return isInSelectedCategories && matchesSearchQuery;
   });
 };
