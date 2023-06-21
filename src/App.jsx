@@ -1,20 +1,19 @@
 import { React, useState } from 'react';
 import './App.scss';
 import { ProductTable } from './components/ProductTable';
+import {
+  findCategoryById,
+  findOwnerById,
+  filterProducts,
+} from './helpers';
 
 import usersFromServer from './api/users';
 import categoriesFromServer from './api/categories';
 import productsFromServer from './api/products';
 
-const findCategoryById = (categories, categoryId) => categories
-  .find(category => category.id === categoryId) || null;
-
-const findOwnerById = (users, ownerId) => users
-  .find(user => user.id === ownerId) || null;
-
 const products = productsFromServer.map((product) => {
   const category = findCategoryById(categoriesFromServer, product.categoryId);
-  const user = findOwnerById(usersFromServer, category.ownerId); // find by category.ownerId
+  const user = findOwnerById(usersFromServer, category.ownerId);
 
   return {
     ...product,
@@ -23,35 +22,20 @@ const products = productsFromServer.map((product) => {
   };
 });
 
-const filterProductsByUserId = (allProducts, userId) => {
-  if (!userId) {
-    return allProducts;
-  }
-
-  return allProducts.filter(product => product.user.id === userId);
-};
-
-const filterProducts = (allProducts, userId, searchQuery) => {
-  const visibleUsers = filterProductsByUserId(allProducts, userId);
-
-  const normalizedSearchQuery = searchQuery.toLowerCase();
-
-  return visibleUsers.filter((product) => {
-    const stringToSearch = `${product.name.toLowerCase()}`;
-
-    return stringToSearch.includes(normalizedSearchQuery);
-  });
-};
-
 export const App = () => {
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
 
-  const filteredProducts = filterProducts(
+  const visibleProducts = filterProducts(
     products,
     selectedUserId,
     searchQuery,
   );
+
+  const clearFilters = () => {
+    setSelectedUserId(null);
+    setSearchQuery('');
+  };
 
   return (
     <div className="section">
@@ -159,6 +143,7 @@ export const App = () => {
                 data-cy="ResetAllButton"
                 href="#/"
                 className="button is-link is-outlined is-fullwidth"
+                onClick={clearFilters}
               >
                 Reset all filters
               </a>
@@ -167,11 +152,14 @@ export const App = () => {
         </div>
 
         <div className="box table-container">
-          <p data-cy="NoMatchingMessage">
-            No products matching selected criteria
-          </p>
-
-          <ProductTable products={filteredProducts} />
+          {visibleProducts.length === 0
+            ? (
+              <p data-cy="NoMatchingMessage">
+                No products matching selected criteria
+              </p>
+            )
+            : <ProductTable products={visibleProducts} />
+          }
         </div>
       </div>
     </div>
