@@ -31,10 +31,27 @@ const filterProductsByUserId = (allProducts, userId) => {
   return allProducts.filter(product => product.user.id === userId);
 };
 
+const filterProducts = (allProducts, userId, searchQuery) => {
+  const visibleUsers = filterProductsByUserId(allProducts, userId);
+
+  const normalizedSearchQuery = searchQuery.toLowerCase();
+
+  return visibleUsers.filter((product) => {
+    const stringToSearch = `${product.name.toLowerCase()}`;
+
+    return stringToSearch.includes(normalizedSearchQuery);
+  });
+};
+
 export const App = () => {
   const [selectedUserId, setSelectedUserId] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
-  const filteredProducts = filterProductsByUserId(products, selectedUserId);
+  const filteredProducts = filterProducts(
+    products,
+    selectedUserId,
+    searchQuery,
+  );
 
   return (
     <div className="section">
@@ -74,21 +91,25 @@ export const App = () => {
                   type="text"
                   className="input"
                   placeholder="Search"
-                  value="qwe"
+                  value={searchQuery}
+                  onChange={event => setSearchQuery(event.target.value)}
                 />
 
                 <span className="icon is-left">
                   <i className="fas fa-search" aria-hidden="true" />
                 </span>
 
-                <span className="icon is-right">
-                  {/* eslint-disable-next-line jsx-a11y/control-has-associated-label */}
-                  <button
-                    data-cy="ClearButton"
-                    type="button"
-                    className="delete"
-                  />
-                </span>
+                {searchQuery && (
+                  <span className="icon is-right">
+                    {/* eslint-disable-next-line jsx-a11y/control-has-associated-label */}
+                    <button
+                      data-cy="ClearButton"
+                      type="button"
+                      className="delete"
+                      onClick={() => setSearchQuery('')}
+                    />
+                  </span>
+                )}
               </p>
             </div>
 
